@@ -1,0 +1,28 @@
+{
+  "files": {
+    "main.css": "./static/css/main.6214ca79.chunk.css",
+    "main.js": "./static/js/main.1e0ad52c.chunk.js",
+    "main.js.map": "./static/js/main.1e0ad52c.chunk.js.map",
+    "runtime-main.js": "./static/js/runtime-main.aef6d470.js",
+    "runtime-main.js.map": "./static/js/runtime-main.aef6d470.js.map",
+    "static/js/2.5b1d5d8a.chunk.js": "./static/js/2.5b1d5d8a.chunk.js",
+    "static/js/2.5b1d5d8a.chunk.js.map": "./static/js/2.5b1d5d8a.chunk.js.map",
+    "index.html": "./index.html",
+    "precache-manifest.61580c7476e734adc246e096e65bc806.js": "./precache-manifest.61580c7476e734adc246e096e65bc806.js",
+    "service-worker.js": "./service-worker.js",
+    "static/css/main.6214ca79.chunk.css.map": "./static/css/main.6214ca79.chunk.css.map",
+    "static/js/2.5b1d5d8a.chunk.js.LICENSE.txt": "./static/js/2.5b1d5d8a.chunk.js.LICENSE.txt",
+    "static/media/index.css": "./static/media/Tahoma.d2933672.woff",
+    "static/media/eth.svg": "./static/media/eth.ac0e27af.svg",
+    "static/media/home-discover-before.svg": "./static/media/home-discover-before.27a2cd4a.svg",
+    "static/media/lux-logo-2.svg": "./static/media/lux-logo-2.e154d99d.svg",
+    "static/media/matic.svg": "./static/media/matic.5a61fa13.svg",
+    "static/media/odapp-logo-footer.svg": "./static/media/odapp-logo-footer.b00a6f36.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.aef6d470.js",
+    "static/js/2.5b1d5d8a.chunk.js",
+    "static/css/main.6214ca79.chunk.css",
+    "static/js/main.1e0ad52c.chunk.js"
+  ]
+}
