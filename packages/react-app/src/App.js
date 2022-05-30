@@ -26,17 +26,21 @@ const forwarderOrigin = 'http://lux.wpkt.cash';
 let connected = false;
 let installed = false;
 let accounts = null;
+let connectedStr = "Wallet Connect";
+let currentAccount = null;
 
 async function isMetaMaskConnected() {
     const {ethereum} = window;
     accounts = await ethereum.request({method: 'eth_accounts'});
-    console.log('accounts', accounts[0]);
-    return accounts && accounts.length > 0;
+    console.log('In Metamask connection:', (accounts && accounts.length > 0));
+    return Boolean(accounts && accounts.length > 0);
 }
 
 function isMetaMaskInstalled() {
+    console.log('In isMetaMaskInstalled');
     return Boolean(window.ethereum && window.ethereum.isMetaMask);
 }
+
 
 async function initialise() {
     connected = false;
@@ -47,12 +51,14 @@ async function initialise() {
 
 initialise();
 
-if (typeof window.ethereum !== 'undefined'
-|| (typeof window.web3 !== 'undefined')) {
+if (typeof window.ethereum !== 'undefined') {
   window.ethereum.on('accountsChanged', async () => {
-      initialise();
+      await initialise();
       console.log('accounts changed here');
-      window.location.reload();
+      if (connectedStr !== 'Wallet Connect'){
+        window.location.reload();
+      }
+
   });
 }
 
@@ -62,28 +68,26 @@ const onClickConnect = async () => {
    try {
      // Will open the MetaMask UI
      console.log("Try to connect here");
-     await ethereum.request({ method: 'eth_requestAccounts' });
-     //window.location.reload();
+     currentAccount = await ethereum.request({ method: 'eth_requestAccounts' });
+     await initialise();
+     console.log('current account:', currentAccount, accounts[0]);
    } catch (error) {
      console.error(error);
    }
  };
 
-
-
-function WalletButton() {//{ provider, loadWeb3Modal, logoutOfWeb3Modal, clr}
+function WalletButton() {
 
   const onboarding = new MetaMaskOnboarding({ forwarderOrigin });
-  const [label, setLabel] = useState("");
+  const [label, setLabel] = useState("Connect Wallet");
 
-  var connectedStr = (accounts && accounts.length > 0) ? ((accounts[0].toString()).slice(0,6))+'...' :  "Disconnect Wallet";
-
-  console.log("clicked");
 
   return (
-
-    <StyledButton primary size='large' pad="medium" color='#F0B90C' label={!connected ? "Connect Wallet" : connectedStr} onClick={async () => {
-      onClickConnect();
+    <StyledButton id="connectButton" primary size='large' pad="medium" color='#F0B90C' label={label} onClick={async () => {
+      await onClickConnect();
+      connectedStr = (accounts && accounts.length > 0) ? ((accounts[0].toString()).slice(0,6))+'...' :  "Connect Wallet";
+      console.log('currentAccount:',currentAccount, 'connectedStr:', connectedStr, 'connected:', connected, 'accounts:', (accounts && accounts.length > 0));
+      setLabel(connectedStr);
 
       if (typeof window.ethereum === 'undefined') {
         onboarding.startOnboarding();
@@ -96,12 +100,10 @@ function WalletButton() {//{ provider, loadWeb3Modal, logoutOfWeb3Modal, clr}
 
 
 
-
-
 function App() {
 
   const { loading, error, data } = useQuery(GET_TRANSFERS);
-  //const [provider, loadWeb3Modal, logoutOfWeb3Modal] = useWeb3Modal();
+
   const items = [
     { label: 'Teleport', href: '/' },
   ];
@@ -119,8 +121,6 @@ function App() {
     <Collapsible btn={ WalletButton() }/>
         <Router>
           <Switch>
-
-
             <Route exact path="/">
               <Teleport btn={ WalletButton() }/>
             </Route>

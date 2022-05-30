@@ -485,8 +485,7 @@ async function getProvider(){
   }
 }
 
-if (typeof window.ethereum !== 'undefined'
-|| (typeof window.web3 !== 'undefined')) {
+if (typeof window.ethereum !== 'undefined') {
 
   window.ethereum.on('accountsChanged', function (accounts) {
     if (loc && loc.pathname === '/Teleport'){
@@ -595,7 +594,6 @@ function handleValueToDrop(valueTo, setValueFrom, setValueTo){
 
 async function handleInput(e){
 
-
     // Reset
     signature = null;
     hashedTxId = null;
@@ -699,11 +697,12 @@ async function handleInput(e){
         vault = false;
 
         // Listen for burning completion
-        TeleportContractBurn.once("BridgeBurned", (caller, amount) => {
+        TeleportContractBurn.once("BridgeBurned", async (caller, amount) => {
             console.log('Recipient:', caller);
             console.log('Amount:', amount.toString());
 
             if (cnt == 0){
+              await cookieSetter([amt, cnt, fromNetId, toNetId, receipt, tx, msgSig, tokenName]);
               handleMint(amount, cnt, fromNetId, toNetId, receipt, tx);
               cnt++;
             }
@@ -728,6 +727,7 @@ async function handleInput(e){
 
 
             if (cnt == 0){
+              await cookieSetter([amt, cnt, fromNetId, toNetId, receipt, tx, msgSig, tokenName]);
               await handleMint(amt, cnt, fromNetId, toNetId, receipt, tx);
               cnt++;
             }
@@ -777,6 +777,10 @@ async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
 
       if (msgSig === "null"){
         msgSig = cookies.get("msgSig");
+      }
+
+      if (txid === "null"){
+        txid = cookies.get("txid");
       }
 
       toNetIdHash = Web3.utils.keccak256(toNetId.toString());
