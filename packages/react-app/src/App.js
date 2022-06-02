@@ -8,17 +8,18 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Teleport from "./components/Teleport";
 import Collapsible from "./components/Collapsible";
 //import useWeb3Modal from "./hooks/useWeb3Modal";
+import Cookies from 'universal-cookie';
 import GET_TRANSFERS from "./graphql/subgraph";
 import logoFooter from "./img/odapp-logo-footer.svg";
 import { StyledButton, ButtonForm, ButtonFooter, ImageFooter, customBreakpoints } from "./components/";
 import WalletConnectProvider from "@walletconnect/web3-provider";
-
 import {
   Connect
 } from 'grommet-icons';
 
 var clr = '#FBA300';
 
+const cookies = new Cookies();
 
 var web3Provider, provider;
 const forwarderOrigin = 'http://lux.wpkt.cash';
@@ -42,18 +43,18 @@ function isMetaMaskInstalled() {
 }
 
 
-async function initialise() {
+async function initialize() {
     connected = false;
     installed = false;
     connected = await isMetaMaskConnected();
     installed = isMetaMaskInstalled();
 }
 
-initialise();
+//initialize();
 
 if (typeof window.ethereum !== 'undefined') {
   window.ethereum.on('accountsChanged', async () => {
-      await initialise();
+      await initialize();
       console.log('accounts changed here');
       if (connectedStr !== 'Wallet Connect'){
         window.location.reload();
@@ -69,17 +70,31 @@ const onClickConnect = async () => {
      // Will open the MetaMask UI
      console.log("Try to connect here");
      currentAccount = await ethereum.request({ method: 'eth_requestAccounts' });
-     await initialise();
      console.log('current account:', currentAccount, accounts[0]);
    } catch (error) {
      console.error(error);
    }
  };
 
-function WalletButton() {
 
+ const buttonSetup = async (label, setLabel) => {
+   const { ethereum } = window;
+    try {
+      // Will open the MetaMask UI
+      await initialize();
+      connectedStr = (accounts && accounts.length > 0) ? ((accounts[0].toString()).slice(0,6))+'...' :  "Connect Wallet";
+      setLabel(connectedStr);
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+
+function WalletButton() {
   const onboarding = new MetaMaskOnboarding({ forwarderOrigin });
   const [label, setLabel] = useState("Connect Wallet");
+  buttonSetup(label, setLabel);
 
 
   return (
@@ -114,7 +129,7 @@ function App() {
     }
   }, [loading, error, data]);
 
-  //connectMetamask();
+
 
   return (
     <div>

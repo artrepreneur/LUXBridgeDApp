@@ -32,24 +32,21 @@ var TeleportContractBurn, TeleportContractMint;
 var toTokenAddress = addresses.LBTC_Lux;
 var fromTokenAddress = addresses.LBTC_Eth;
 var fromNetRadio, toNetRadio, fromChainId, toChainId;
-
 /* Net Id  stuff */
 var luxNetId = 43113;
 var ethNetId = 4;
 var fromNetId = ethNetId;
 var toNetId = luxNetId;
-
 var toTargetAddrHash, toTokenAddrHash, toNetIdHash, signature, hashedTxId, tokenAddrHash, vault, networkType;
 var dv, dv1, dv3, dv4, dv5;
-var initialAmt, amt, evmToAddress;
+var initialAmt, amt;
 var mm_provider, usrBalance, loc;
 var completePhase = false;
 var tokenName = null;
 var msgSig = null;
+var evmToAddress = null;
 var msg ="Sign to prove you are initiator of transaction.";
-var cookieArr = ['amount', 'cnt', 'fromNetId', 'toNetId', 'receipt', 'tx', 'msgSig', 'tokenName'];
-
-
+var cookieArr = ['amount', 'cnt', 'fromNetId', 'toNetId', 'tx', 'msgSig', 'tokenName', 'evmToAddress','toTokenAddress', 'fromNetRadio', 'toNetRadio'];
 
 
 /*const chainParams = new Map();
@@ -60,7 +57,6 @@ chainParams.set('80001', {chainName:"Mumbai Testnet", rpcUrl:"https://rpc-mumbai
 chainParams.set('43114', {chainName:"AVAX", rpcUrl:"https://api.avax.network/ext/bc/C/rpc", nativeCurrencyName:"AVAX", nativeCurrencySymbol:"AVAX", nativeCurrencyDecimals:"18", blockExplorerUrl:"https://cchain.explorer.avax.network/"});
 chainParams.set('250', {chainName:"Fantom", rpcUrl:"https://rpc.ftm.tools/", nativeCurrencyName:"FTM", nativeCurrencySymbol:"FTM", nativeCurrencyDecimals:"18", blockExplorerUrl:"https://ftmscan.com"});
 */
-
 
 export const EthIcon = props => (
   <Blank {...props}>
@@ -219,11 +215,12 @@ async function completeTransaction(){
   dv5.style.display= 'none';
 
 
-  if (!TeleportContractMint){
-    console.log('TeleportContractMintError:', TeleportContractMint);
-  }
 
   try {
+          if (!TeleportContractMint){
+            console.log('TeleportContractMintError:', TeleportContractMint);
+            throw new Error('Bad contract mint object.');
+          }
           // Check if key exists to know if transaction was already completed.
           keyExists = await TeleportContractMint.keyExistsTx(signature);
           console.log('keyExists', keyExists);
@@ -236,21 +233,17 @@ async function completeTransaction(){
 
   catch (err){
       console.log('Transaction Failure.', err);
-      //if (err.data.message === 'header not found' || err.data.message === 'undefined'){
-      //  dv4.style.display= 'block'; // show continue
-      //}
-
-      //else {
-      if (err.toString().includes('unknown account')){
-          dv.innerHTML += "<h6 style={{backgroundColor: '#2B2F36'}}>Please connect your metamask wallet.</h6>";
+      if (err !=null &&err.toString().includes('unknown account')){
+          dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Please connect your metamask wallet.</h4>";
       }
       else{
-          dv.innerHTML += "<h6 style={{backgroundColor: '#2B2F36'}}>"+err.data.message+"</h6>";
+          dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>"+err+"</h4>";//err.data.message
       }
       //}
       dv1.style.display= 'none';
       dv3.style.display= 'none';
-      dv4.style.display= 'block';
+      dv4.style.display= 'none';
+      dv5.style.display= 'block';
       return;
   }
 
@@ -293,9 +286,10 @@ async function completeTransaction(){
                   console.log("Amount:", amtNoWei, 'Fees:', feesNoWei, 'Token Address:', tokenAddr);
 
                   if (Number(amtNoWei) > 0) {
-                      if (receipt !== undefined) {
-                          dv.innerHTML = "<h4 style={{backgroundColor: '#2B2F36'}}>Pending Transaction Complete.</h4><h4 style={{backgroundColor: '#2B2F36'}}><b>Your transaction hash is " + receipt.transactionHash + "</h4>";
+                      if (receipt2 !== undefined) {
+                          dv.innerHTML = "<h4 style={{backgroundColor: '#2B2F36'}}>Pending Transaction Complete.</h4><h4 style={{backgroundColor: '#2B2F36'}}><b>Your transaction hash is " + receipt2.transactionHash + "</h4>";
                       }
+
                       dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>You received "+amtNoWei+" "+tokenName+" tokens.</h4>";//LBTC
                       dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Your fees were "+feesNoWei+" "+tokenName+" tokens.</h4>";
                       dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>If the Teleport token hasn't already been added to your wallet yet, use the button below to add it. Make sure to add it to the right MetaMask account.</h4>";
@@ -304,22 +298,22 @@ async function completeTransaction(){
                       complete = true;
                       await cookieReSetter();
                       return;
+
                   }
                   else {
                       dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Transaction Failed.</h4>";
                       dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Bad transaction. Check your sender / recipient address pair or transaction hash. </h4>";
                       dv1.style.display= 'none';
                       dv4.style.display= 'block';
-
                       return;
                   }
 
               });
 
-              var receipt = await tx.wait();
-              console.log('Receipt:', receipt, (receipt.status === 1));
+              var receipt2 = await tx.wait();
+              console.log('Receipt:', receipt2, (receipt2.status === 1));
 
-              if (receipt.status !== 1) {
+              if (receipt2.status !== 1) {
                   console.log('Transaction Failure.');
                   dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Your transaction failed</h4>";
                   dv.innerHTML += "<h6 style={{backgroundColor: '#2B2F36'}}>It's possible you have already claimed this transaction.</h6>";
@@ -450,7 +444,6 @@ async function checkNetsMatch(){
   dv1 = document.getElementById("spin");
   dv3 = document.getElementById("addToken");
   dv4 = document.getElementById("continue");
-
   dv.style.display= 'none';
   dv3.style.display= 'none';
   //dv4.style.display= 'none';
@@ -506,7 +499,6 @@ if (typeof window.ethereum !== 'undefined') {
       checkNetsMatch();
     }
   });
-
 }
 
 
@@ -607,12 +599,14 @@ async function handleInput(e){
     dv1 = document.getElementById("spin");
     dv3 = document.getElementById("addToken");
     dv4 = document.getElementById("continue");
+    dv5 = document.getElementById("retry");
 
     // Reset Interface
     dv.style.display= 'none';
     dv1.style.display= 'none';
     dv3.style.display= 'none';
     dv4.style.display= 'none';
+    dv5.style.display= 'none';
 
 
     if (!mm_provider){
@@ -702,8 +696,7 @@ async function handleInput(e){
             console.log('Amount:', amount.toString());
 
             if (cnt == 0){
-              await cookieSetter([amt, cnt, fromNetId, toNetId, receipt, tx, msgSig, tokenName]);
-              handleMint(amount, cnt, fromNetId, toNetId, receipt, tx);
+              handleMint(amount, cnt, fromNetId, toNetId, tx);
               cnt++;
             }
         });
@@ -725,15 +718,14 @@ async function handleInput(e){
             TeleportContractBurn.off("BridgeBurned");
             TeleportContractBurn.removeAllListeners(["BridgeBurned"]);
 
-
             if (cnt == 0){
-              await cookieSetter([amt, cnt, fromNetId, toNetId, receipt, tx, msgSig, tokenName]);
-              await handleMint(amt, cnt, fromNetId, toNetId, receipt, tx);
+              console.log('cookie array:', amt, cnt, fromNetId, toNetId, tx, msgSig, tokenName);
+              await handleMint(amt, cnt, fromNetId, toNetId, tx);
               cnt++;
             }
         }
-
     }
+
     catch (err) {
         console.log('Error:', err);
         dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Your transaction failed</h4>";
@@ -753,42 +745,68 @@ async function handleInput(e){
 }
 
 
-async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
+//async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
+async function handleMint(amount, cnt, fromNetId, toNetId, tx){
   amt = amount; // in wei
   var amtNoWei = Web3.utils.fromWei(amount.toString());
+  console.log('amtNoWei', Number(amtNoWei), 'cnt', cnt);
   var txid = tx.hash;
-  console.log('amtNoWei', Number(amtNoWei), 'txid', txid, 'cnt', cnt);
+  var toNetId
+  console.log('txid:', txid);
   dv = document.getElementById("output");
   dv1 = document.getElementById("spin");
+  dv3 = document.getElementById("addToken");
+  dv4 = document.getElementById("continue");
   dv5 = document.getElementById("retry");
+  dv5.style.display= 'none';
+  dv.style.display= 'none';
+  dv3.style.display= 'none';
 
 
   if (Number(amtNoWei) > 0 && cnt == 0) {
 
-      if (receipt !== undefined) {
-        dv.innerHTML = "<h4 style={{backgroundColor: '#2B2F36'}}>Bridge Received Coins.</h4><h4 style={{backgroundColor: '#2B2F36'}}><b>Your transaction hash is " + txid + "</h4>";
+      dv.innerHTML = "<h4 style={{backgroundColor: '#2B2F36'}}>Bridge Received Coins.</h4><h4 style={{backgroundColor: '#2B2F36'}}><b>Your transaction hash is " + txid + "</h4>";
+
+      try {
+        if (cookies.get('toNetId')!==null && cookies.get('toNetId')!=='' && toNetId === null){
+          toNetId = cookies.get('toNetId');
+        }
+        if (cookies.get('msgSig')!==null && cookies.get('msgSig')!=='' && msgSig === null){
+          msgSig = cookies.get('msgSig');
+        }
+        if (cookies.get('tokenName')!==null && cookies.get('tokenName')!=='' && tokenName === null){
+          tokenName = cookies.get('tokenName');
+        }
+        if (cookies.get('evmToAddress')!==null && cookies.get('evmToAddress')!=='' && evmToAddress === null){
+           evmToAddress = cookies.get('evmToAddress');
+        }
+        if (cookies.get('toTokenAddress')!==null && cookies.get('toTokenAddress')!=='' && toTokenAddress === null){
+          toTokenAddress = cookies.get('toTokenAddress');
+        }
+        if (cookies.get('toNetId')!==null && cookies.get('toNetId')!=='' && (toNetId === '' || toNetId == null)){
+          toNetId = cookies.get('toNetId');
+        }
+        if (cookies.get('fromNetId')!==null && cookies.get('fromNetId')!=='' && (fromNetId === '' || fromNetId == null)){
+          fromNetId = cookies.get('fromNetId');
+        }
       }
+      catch (error) {
+        dv.innerHTML = "<h4 style={{backgroundColor: '#2B2F36'}}>Transaction Failure. Cookies not available. This DApp requires cookies to complete transaction.</h4>";
+        dv.style.display= 'block';
+        console.log('Transaction Failure...');
+        return;
+      }
+
+
+      console.log("http://localhost:5000/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetId+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddress+"/msgSig/"+msgSig+"/toTargetAddrHash/"+evmToAddress);
       dv1.style.display= 'none';
-
-
-      if (tokenName === "null"){
-        tokenName = cookies.get("tokenName");
-      }
-
-      if (msgSig === "null"){
-        msgSig = cookies.get("msgSig");
-      }
-
-      if (txid === "null"){
-        txid = cookies.get("txid");
-      }
-
       toNetIdHash = Web3.utils.keccak256(toNetId.toString());
       toTargetAddrHash = Web3.utils.keccak256(evmToAddress);//Web3.utils.keccak256(evmToAddress.slice(2));
       toTokenAddrHash = Web3.utils.keccak256(toTokenAddress);//Web3.utils.keccak256(toTokenAddress.slice(2));
       console.log("toTargetAddrHash", toTargetAddrHash, "toNetIdHash", toNetIdHash, "toTokenAddrHash", toTokenAddrHash);
-      //var cmd = "http://localhost:5000/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetIdHash+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddrHash+"/msgSig/"+msgSig+"/toTargetAddrHash/"+toTargetAddrHash;
-      var cmd = "https://teleporter.wpkt.cash/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetIdHash+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddrHash+"/msgSig/"+msgSig+"/toTargetAddrHash/"+toTargetAddrHash;
+      var cmd = "http://localhost:5000/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetIdHash+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddrHash+"/msgSig/"+msgSig+"/toTargetAddrHash/"+toTargetAddrHash;
+      //var cmd = "https://teleporter.wpkt.cash/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetIdHash+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddrHash+"/msgSig/"+msgSig+"/toTargetAddrHash/"+toTargetAddrHash;
+
 
       console.log('cmd', cmd);
       dv1.style.display= 'block';
@@ -809,9 +827,7 @@ async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
             hashedTxId = result.hashedTxId;
             toTargetAddrHash = result.from;
             tokenAddrHash = result.tokenAddrHash;
-
-            console.log('hashedTxId:', hashedTxId);
-
+            console.log('hashedTxId:', hashedTxId, 'signature:', signature, 'toTargetAddrHash:', toTargetAddrHash, 'tokenAddrHash:', tokenAddrHash);
             dv1.style.display= 'none';
             dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Click continue to complete your transaction.</h4>";
             dv.style.display= 'block';
@@ -825,7 +841,6 @@ async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
               dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>If the Teleport token hasn't already been added to your wallet yet, use the button below to add it. </h4>";
               dv.style.display= 'block';
               dv3.style.display= 'block';
-              //dv1.style.display= 'none';
               return;
           }
           else if (Number(result.output) === -3)  {
@@ -834,6 +849,7 @@ async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
               dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Non-specific gas price error.</h4>";
               dv.style.display= 'block';
               dv1.style.display= 'none';
+              await cookieSetter([amount, cnt, fromNetId, toNetId, tx, msgSig, tokenName, evmToAddress, toTokenAddress, fromNetRadio, toNetRadio]);
               return;
           }
           else if (Number(result.output) === -4)  {
@@ -842,6 +858,7 @@ async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
               dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Unknown error.</h4>";
               dv.style.display= 'block';
               dv1.style.display= 'none';
+              await cookieSetter([amount, cnt, fromNetId, toNetId, tx, msgSig, tokenName, evmToAddress, toTokenAddress, fromNetRadio, toNetRadio]);
               return;
           }
           else if (Number(result.output) === -5)  {
@@ -860,6 +877,7 @@ async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
               dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}> It is possible you used a different pkt address for this transaction.</h4>";
               dv.style.display= 'block';
               dv1.style.display= 'none';
+              await cookieSetter([amount, cnt, fromNetId, toNetId, tx, msgSig, tokenName, evmToAddress, toTokenAddress, fromNetRadio, toNetRadio]);
               return;
           }
 
@@ -870,8 +888,9 @@ async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
           dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Click retry to complete your transaction.</h4>";
           dv.style.display= 'block';
           dv1.style.display= 'none';
-          await cookieSetter([amount, cnt, fromNetId, toNetId, receipt, tx, msgSig, tokenName]);
-          dv5.style.display= 'block'; // Show the handleMint() button -- which takes cookies.amount as args
+          dv4.style.display= 'block'; // Show the handleMint() button -- which takes cookies.amount as args
+          dv5.style.display= 'none';
+          await cookieSetter([amount, cnt, fromNetId, toNetId, tx, msgSig, tokenName, evmToAddress, toTokenAddress, fromNetRadio, toNetRadio]);
           return;
       });
 
@@ -882,6 +901,7 @@ async function handleMint(amount, cnt, fromNetId, toNetId, receipt, tx){
       dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}>Bad transaction. Check your transaction hash. </h4>";
       dv.style.display= 'block';
       dv1.style.display= 'none';
+      await cookieSetter([amount, cnt, fromNetId, toNetId, tx, msgSig, tokenName, evmToAddress, toTokenAddress, fromNetRadio, toNetRadio]);
       return;
   }
 
@@ -905,23 +925,30 @@ function cookieReSetter(){
   }
 }
 
+document.addEventListener("DOMContentLoaded", function(event) {
+  console.log('Loaded');
+  if (cookies.get("msgSig") && cookies.get("msgSig") !==''){
+    console.log('Unprocessed transaction detected...');
+    dv = document.getElementById("output");
+    dv.innerHTML = "<h4 style={{backgroundColor: '#2B2F36'}}>Unprocessed transaction detected. Click \"Retry\"</h4>";
+    dv5 = document.getElementById("retry");
+    dv.style.display= 'block';
+    dv5.style.display= 'block';
+  }
+});
 
 var initialValue = "LUX";
 var initialValue2 = "Ethereum";
-fromNetRadio = "Select"; //initialValue;
-toNetRadio = "Select"; //initialValue2;
+fromNetRadio = "Select";
+toNetRadio = "Select";
 
 function Teleport({btn}) {
     const [valueFrom, setValueFrom] = useState('Select');
-    //const [valueFrom, setValueFrom] = useState('LUX');
     const [valueTo, setValueTo] = useState('Select');
-    //const [cookies, setCookie, removeCookie] = useCookies(['amount', 'cnt', 'fromNetId', 'toNetId', 'dv', 'dv1', 'receipt', 'tx']);
     const [fromIcn, setFromIcn] = useState(<FormDown color='white'/>);
     const [toIcn, setToIcn] = useState(<FormDown color='white'/>);
-
     getProvider();
     loc = useLocation();
-    console.log('loc', loc);
     console.log('valueTo:', valueTo, 'valueFrom:', valueFrom);
 
     return (
@@ -1374,7 +1401,7 @@ function Teleport({btn}) {
                                           </div>
 
                                           <div hidden align="center" id="retry" pad="medium" style={{padding:'2%'}}>
-                                          <StyledButton size='large' pad="medium" color='#F0B90C' label='Retry' id='retry' onClick={() => handleMint(cookies.get("amount"),cookies.get("cnt"), cookies.get("fromNetId"), cookies.get("toNetId"), cookies.get("receipt"), cookies.get("tx"))}/>
+                                          <StyledButton size='large' pad="medium" color='#F0B90C' label='Retry' id='retry' onClick={() => handleMint(cookies.get("amount"),cookies.get("cnt"), cookies.get("fromNetId"), cookies.get("toNetId"), cookies.get("tx"))}/>
                                           </div>
                                         <div hidden align="center" id="addToken" pad="medium" style={{padding:'2%', wordBreak: "break-word"}}>
                                             <StyledButton size='large' pad="medium" color='#F0B90C' label='Add Token To Wallet' id='addToken' onClick={() => addTeleport()}/>
@@ -1544,7 +1571,7 @@ function Teleport({btn}) {
                                           </div>
 
                                           <div hidden align="center" id="retry" pad="medium" style={{padding:'2%'}}>
-                                          <StyledButton size='large' pad="medium" color='#F0B90C' label='Retry' id='retry' onClick={() => handleMint(cookies.get("amount"),cookies.get("cnt"), cookies.get("fromNetId"), cookies.get("toNetId"), cookies.get("receipt"), cookies.get("tx"))}/>
+                                          <StyledButton size='large' pad="medium" color='#F0B90C' label='Retry' id='retry' onClick={() => handleMint(cookies.get("amount"),cookies.get("cnt"), cookies.get("fromNetId"), cookies.get("toNetId"), cookies.get("tx"))}/>
                                           </div>
 
                                         <div hidden align="center" id="addToken" pad="medium" style={{padding:'2%', wordBreak: "break-word"}}>
@@ -1707,7 +1734,7 @@ function Teleport({btn}) {
                                           </div>
 
                                           <div hidden align="center" id="retry" pad="medium" style={{padding:'2%'}}>
-                                          <StyledButton size='large' pad="medium" color='#F0B90C' label='Retry' id='retry' onClick={() => handleMint(cookies.get("amount"),cookies.get("cnt"), cookies.get("fromNetId"), cookies.get("toNetId"), cookies.get("receipt"), cookies.get("tx"))}/>
+                                          <StyledButton size='large' pad="medium" color='#F0B90C' label='Retry' id='retry' onClick={() => handleMint(cookies.get("amount"),cookies.get("cnt"), cookies.get("fromNetId"), cookies.get("toNetId"), cookies.get("tx"))}/>
                                           </div>
 
                                         <div hidden align="center" id="addToken" pad="medium" style={{padding:'2%', wordBreak: "break-word"}}>
