@@ -798,14 +798,13 @@ async function handleMint(amount, cnt, fromNetId, toNetId, tx){
       }
 
 
-      console.log("http://localhost:5000/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetId+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddress+"/msgSig/"+msgSig+"/toTargetAddrHash/"+evmToAddress);
       dv1.style.display= 'none';
       toNetIdHash = Web3.utils.keccak256(toNetId.toString());
       toTargetAddrHash = Web3.utils.keccak256(evmToAddress);//Web3.utils.keccak256(evmToAddress.slice(2));
       toTokenAddrHash = Web3.utils.keccak256(toTokenAddress);//Web3.utils.keccak256(toTokenAddress.slice(2));
       console.log("toTargetAddrHash", toTargetAddrHash, "toNetIdHash", toNetIdHash, "toTokenAddrHash", toTokenAddrHash);
-      var cmd = "http://localhost:5000/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetIdHash+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddrHash+"/msgSig/"+msgSig+"/toTargetAddrHash/"+toTargetAddrHash;
-      //var cmd = "https://teleporter.wpkt.cash/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetIdHash+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddrHash+"/msgSig/"+msgSig+"/toTargetAddrHash/"+toTargetAddrHash;
+      //var cmd = "http://localhost:5000/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetIdHash+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddrHash+"/msgSig/"+msgSig+"/toTargetAddrHash/"+toTargetAddrHash;
+      var cmd = "https://teleporter.wpkt.cash/api/v1/getsig/txid/"+txid+"/fromNetId/"+fromNetId+"/toNetIdHash/"+toNetIdHash+"/tokenName/"+tokenName+"/tokenAddrHash/"+toTokenAddrHash+"/msgSig/"+msgSig+"/toTargetAddrHash/"+toTargetAddrHash;
 
 
       console.log('cmd', cmd);
