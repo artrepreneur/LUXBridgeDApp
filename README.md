@@ -4,7 +4,7 @@
 Clone the project.
 
 ```
-git clone https://github.com/artrepreneur/LUXDApp/
+git clone https://github.com/artrepreneur/LUXBridgeDApp/
 ```
 
 Install dependencies.
