@@ -96,7 +96,6 @@ function WalletButton() {
   const [label, setLabel] = useState("Connect Wallet");
   buttonSetup(label, setLabel);
 
-
   return (
     <StyledButton id="connectButton" primary size='large' pad="medium" color='#F0B90C' label={label} onClick={async () => {
       await onClickConnect();

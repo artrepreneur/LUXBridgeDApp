@@ -695,10 +695,10 @@ async function handleInput(e){
             console.log('Recipient:', caller);
             console.log('Amount:', amount.toString());
 
-            if (cnt == 0){
+          /*  if (cnt == 0){
               handleMint(amount, cnt, fromNetId, toNetId, tx);
               cnt++;
-            }
+            }*/
         });
 
         var receipt = await tx.wait();
