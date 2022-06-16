@@ -873,7 +873,7 @@ async function handleMint(amount, cnt, fromNetId, toNetId, tx){
               console.log('Bad transaction.');
               dv.innerHTML = "<h4 style={{backgroundColor: '#2B2F36'}}>Transaction Failure</h4>";
               dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}> Either transaction doesn't exist or it was for a zero amount.</h4>";
-              dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}> It is possible you used a different pkt address for this transaction.</h4>";
+              dv.innerHTML += "<h4 style={{backgroundColor: '#2B2F36'}}> It is possible you used a different sender address for this transaction.</h4>";
               dv.style.display= 'block';
               dv1.style.display= 'none';
               await cookieSetter([amount, cnt, fromNetId, toNetId, tx, msgSig, tokenName, evmToAddress, toTokenAddress, fromNetRadio, toNetRadio]);
