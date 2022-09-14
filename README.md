@@ -12,6 +12,7 @@ Install dependencies.
 ```
 cd ./packages/react-app
 npm install
+npm start
 ```
 
 Runs the React app in development mode.<br>
